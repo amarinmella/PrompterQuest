@@ -1765,6 +1765,21 @@ window.deleteStudent = deleteStudent;
 // ==========================================================================
 
 document.addEventListener("DOMContentLoaded", () => {
+    // 0. MENÚ MÓVIL (Sidebar Toggle)
+    const mobileMenuBtn = document.getElementById("mobile-menu-btn");
+    const sidebarOverlay = document.getElementById("sidebar-overlay");
+    const sidebar = document.querySelector(".sidebar");
+
+    function toggleMobileMenu() {
+        if (sidebar && sidebarOverlay) {
+            sidebar.classList.toggle("mobile-active");
+            sidebarOverlay.classList.toggle("active");
+        }
+    }
+
+    if (mobileMenuBtn) mobileMenuBtn.addEventListener("click", toggleMobileMenu);
+    if (sidebarOverlay) sidebarOverlay.addEventListener("click", toggleMobileMenu);
+
     // 1. NAVEGACIÓN Y TEMA
     
     // Navegación Sidebar
@@ -1774,6 +1789,10 @@ document.addEventListener("DOMContentLoaded", () => {
             const viewId = btn.getAttribute("data-target");
             if (viewId) {
                 showView(viewId);
+                // Cerrar menú móvil al seleccionar una opción
+                if (window.innerWidth <= 768 && sidebar && sidebar.classList.contains("mobile-active")) {
+                    toggleMobileMenu();
+                }
             }
         });
     });

@@ -2073,39 +2073,48 @@ body.light-theme .option-btn.selected .option-badge {
 }
 
 /* RESPONSIVE DESIGN (Pantallas medianas y móviles) */
-@media (max-width: 1024px) {
-    .sidebar {
-        width: 80px;
-        padding: 20px 10px;
-    }
-    
-    .brand-name, .toggle-text, .nav-text {
-        display: none;
-    }
-    
-    .brand {
-        justify-content: center;
-        padding-bottom: 20px;
-    }
-    
-    .logo-wrapper {
-        width: 38px;
-        height: 38px;
-    }
-    
-    .nav-item {
-        justify-content: center;
-        padding: 14px;
-        border-radius: 12px;
-    }
-    
-    .main-content {
-        margin-left: 80px;
-        padding: 0 20px 20px 20px;
-    }
+/* ==========================================================================
+   ELEMENTOS MÓVILES (Ocultos por defecto)
+   ========================================================================== */
+.mobile-menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--color-text-main);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+    transition: var(--transition-smooth);
 }
 
-@media (max-width: 850px) {
+.mobile-menu-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+body.light-theme .mobile-menu-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 95;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+@media (max-width: 1024px) {
     .dashboard-layout {
         grid-template-columns: 1fr;
     }
@@ -2121,9 +2130,43 @@ body.light-theme .option-btn.selected .option-badge {
     .chat-sandbox-area {
         height: 480px;
     }
+
+    .teacher-management-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
 }
 
 @media (max-width: 768px) {
+    /* Menú Móvil */
+    .mobile-menu-btn {
+        display: block;
+    }
+
+    .sidebar {
+        width: 260px;
+        transform: translateX(-100%);
+        box-shadow: 5px 0 25px rgba(0,0,0,0.5);
+    }
+
+    .sidebar.mobile-active {
+        transform: translateX(0);
+    }
+
+    .brand-name, .toggle-text, .nav-text {
+        display: inline;
+    }
+
+    .nav-item {
+        justify-content: flex-start;
+    }
+
+    .main-content {
+        margin-left: 0;
+        padding: 0 16px 16px 16px;
+    }
+
     .lesson-body {
         grid-template-columns: 1fr;
         justify-items: center;
@@ -2152,10 +2195,32 @@ body.light-theme .option-btn.selected .option-badge {
     
     .top-status-bar {
         padding: 0 10px;
+        margin-bottom: 20px;
     }
     
     .profile-stats-grid {
         grid-template-columns: 1fr;
+    }
+
+    /* Fixes de panel de profesor y formularios */
+    .teacher-header-row {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+    
+    .teacher-actions-header {
+        width: 100%;
+        justify-content: stretch;
+    }
+    
+    .teacher-actions-header button {
+        flex: 1;
+        min-width: 100%;
+        margin-bottom: 8px;
+    }
+
+    .glass-table-container {
+        overflow-x: auto;
     }
 }
 
