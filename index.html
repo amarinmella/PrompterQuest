@@ -123,6 +123,25 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Acordeón de Objetivos (1° Medio) -->
+                            <div class="unit-objectives-accordion">
+                                <button class="btn-accordion-toggle" data-unit="unit1">
+                                    <span class="accordion-arrow">▶</span> 🎯 Objetivos y Competencias (1° Medio)
+                                </button>
+                                <div class="objectives-panel" id="panel-unit1">
+                                    <div class="objectives-content">
+                                        <div class="obj-section">
+                                            <h4>🎯 Objetivo de Aprendizaje (OA)</h4>
+                                            <p>Comprender el funcionamiento básico de los modelos de lenguaje (LLM) y el impacto del principio GIGO (Garbage In, Garbage Out) en la calidad de las respuestas.</p>
+                                        </div>
+                                        <div class="obj-section">
+                                            <h4>💡 Competencias Adquiridas</h4>
+                                            <p>Alfabetización digital básica, formulación de preguntas claras y pensamiento crítico ante tecnologías generativas.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             
                             <!-- Nodos de nivel (Estilo Duolingo) -->
                             <div class="path-nodes">
@@ -162,6 +181,25 @@
                                             <circle cx="30" cy="30" r="26" class="progress-bar-svg" id="unit2-progress-circle"></circle>
                                         </svg>
                                         <span class="progress-text" id="unit2-progress-text">0%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Acordeón de Objetivos (2° Medio) -->
+                            <div class="unit-objectives-accordion">
+                                <button class="btn-accordion-toggle" data-unit="unit2">
+                                    <span class="accordion-arrow">▶</span> 🎯 Objetivos y Competencias (2° Medio)
+                                </button>
+                                <div class="objectives-panel" id="panel-unit2">
+                                    <div class="objectives-content">
+                                        <div class="obj-section">
+                                            <h4>🎯 Objetivo de Aprendizaje (OA)</h4>
+                                            <p>Aplicar la metodología estructural RCTF (Rol, Contexto, Tarea, Formato) para diseñar instrucciones precisas y predecibles.</p>
+                                        </div>
+                                        <div class="obj-section">
+                                            <h4>💡 Competencias Adquiridas</h4>
+                                            <p>Estructuración lógica de instrucciones, adaptabilidad de roles profesionales y control de formatos de salida.</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -212,6 +250,25 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Acordeón de Objetivos (3° Medio) -->
+                            <div class="unit-objectives-accordion">
+                                <button class="btn-accordion-toggle" data-unit="unit3">
+                                    <span class="accordion-arrow">▶</span> 🎯 Objetivos y Competencias (3° Medio)
+                                </button>
+                                <div class="objectives-panel" id="panel-unit3">
+                                    <div class="objectives-content">
+                                        <div class="obj-section">
+                                            <h4>🎯 Objetivo de Aprendizaje (OA)</h4>
+                                            <p>Implementar técnicas de aprendizaje interactivo con ejemplos (Few-Shot Prompting) utilizando el framework CREA.</p>
+                                        </div>
+                                        <div class="obj-section">
+                                            <h4>💡 Competencias Adquiridas</h4>
+                                            <p>Diseño instruccional avanzado, aprendizaje por imitación de patrones y resolución de problemas algorítmicos.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             
                             <div class="path-nodes">
                                 <div class="node-row center">
@@ -250,6 +307,25 @@
                                             <circle cx="30" cy="30" r="26" class="progress-bar-svg" id="unit4-progress-circle"></circle>
                                         </svg>
                                         <span class="progress-text" id="unit4-progress-text">0%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Acordeón de Objetivos (4° Medio) -->
+                            <div class="unit-objectives-accordion">
+                                <button class="btn-accordion-toggle" data-unit="unit4">
+                                    <span class="accordion-arrow">▶</span> 🎯 Objetivos y Competencias (4° Medio)
+                                </button>
+                                <div class="objectives-panel" id="panel-unit4">
+                                    <div class="objectives-content">
+                                        <div class="obj-section">
+                                            <h4>🎯 Objetivo de Aprendizaje (OA)</h4>
+                                            <p>Dominar el diseño de prompts complejos de nivel profesional mediante el framework CREATE (Character, Request, Examples, Adjustments, Type, Extras).</p>
+                                        </div>
+                                        <div class="obj-section">
+                                            <h4>💡 Competencias Adquiridas</h4>
+                                            <p>Programación declarativa de alto nivel, mitigación de sesgos, control estricto de restricciones y optimización de flujos de trabajo con IA.</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -463,7 +539,7 @@
                             </div>
                             <div class="profile-meta">
                                 <h2 id="profile-username">Estudiante Prompter</h2>
-                                <p class="profile-sub">Estudiante de Primero Medio | Prompt Engineering Cadet</p>
+                                <p class="profile-sub" id="profile-sub-details">Estudiante | Curso | Prompt Engineering Cadet</p>
                                 <span class="badge" id="profile-rank-badge">Ingeniero Novato</span>
                             </div>
                         </div>
@@ -522,6 +598,14 @@
                             </div>
                         </div>
                         <div class="form-group">
+                            <label for="select-profile-institution">Colegio o Liceo:</label>
+                            <select id="select-profile-institution" class="select-dropdown"></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="select-profile-course">Curso:</label>
+                            <select id="select-profile-course" class="select-dropdown"></select>
+                        </div>
+                        <div class="form-group">
                             <label>Elige tu Avatar:</label>
                             <div class="avatar-selector">
                                 <span class="avatar-opt" data-emoji="🚀">🚀</span>
@@ -567,7 +651,8 @@
                                 <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.8rem; font-weight: 800;">👨‍🏫 Panel Docente - Primero Medio</h2>
                                 <p style="color: var(--color-text-muted); font-size: 0.95rem; margin-top: 4px;">Monitorea el progreso de tus estudiantes en tiempo real y gestiona sus recompensas de XP.</p>
                             </div>
-                            <div class="teacher-actions-header" style="display: flex; gap: 12px;">
+                            <div class="teacher-actions-header" style="display: flex; gap: 12px; flex-wrap: wrap;">
+                                <button class="btn btn-danger btn-sm btn-danger-glow" id="btn-delete-all-students">🗑️ Borrar Todos los Alumnos</button>
                                 <button class="btn btn-primary btn-sm" id="btn-refresh-students">🔄 Actualizar Lista</button>
                                 <button class="btn btn-primary btn-sm btn-glow" id="btn-copy-grades">📋 Copiar a Excel</button>
                             </div>
@@ -616,9 +701,26 @@
                                </tbody>
                             </table>
                         </div>
-                    </div>
 
-                </div>
+                        <!-- Gestión de Establecimientos y Cursos -->
+                        <div class="teacher-management-grid">
+                            <div class="glass-card teacher-management-card">
+                                <h3>🏫 Agregar Establecimiento (Colegio/Liceo)</h3>
+                                <div class="form-group" style="margin-bottom: 12px;">
+                                    <input type="text" id="teacher-new-institution" placeholder="Ej: Liceo Polivalente Juan A. Ríos" style="width: 100%; border-radius: 12px; padding: 10px 14px; border: 1px solid var(--color-border); background: rgba(0,0,0,0.25); color: white; outline: none; margin-bottom: 12px;">
+                                    <button class="btn btn-primary btn-sm w-100" id="btn-teacher-add-institution">➕ Agregar Establecimiento</button>
+                                </div>
+                            </div>
+                            <div class="glass-card teacher-management-card">
+                                <h3>📚 Agregar Curso</h3>
+                                <div class="form-group" style="margin-bottom: 12px;">
+                                    <input type="text" id="teacher-new-course" placeholder="Ej: 1° Medio B" style="width: 100%; border-radius: 12px; padding: 10px 14px; border: 1px solid var(--color-border); background: rgba(0,0,0,0.25); color: white; outline: none; margin-bottom: 12px;">
+                                    <button class="btn btn-primary btn-sm w-100" id="btn-teacher-add-course">➕ Agregar Curso</button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
             </section>
 
         </main>
@@ -789,6 +891,45 @@
             </form>
 
             <div id="auth-message" class="auth-message hidden"></div>
+        </div>
+    </div>
+
+    <!-- PANTALLA DE BIENVENIDA / ONBOARDING COMPLETO -->
+    <div id="onboarding-overlay" class="onboarding-overlay hidden">
+        <div class="onboarding-card glass-card">
+            <div class="onboarding-header">
+                <h2>¡Bienvenido a PrompterQuest! 🚀</h2>
+                <p>Configura tu avatar y tus datos académicos para comenzar tu aventura de aprendizaje en Ingeniería de Prompts.</p>
+            </div>
+            <div class="onboarding-form">
+                <div class="onboarding-avatar-selection">
+                    <div class="onboarding-avatar-preview" id="onboarding-avatar-preview">🚀</div>
+                    <div class="avatar-selector" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 10px; margin-bottom: 10px;">
+                        <span class="avatar-opt active" data-emoji="🚀">🚀</span>
+                        <span class="avatar-opt" data-emoji="👾">👾</span>
+                        <span class="avatar-opt" data-emoji="🤖">🤖</span>
+                        <span class="avatar-opt" data-emoji="🦊">🦊</span>
+                        <span class="avatar-opt" data-emoji="🐱">🐱</span>
+                        <span class="avatar-opt" data-emoji="🦖">🦖</span>
+                        <span class="avatar-opt" data-emoji="🦄">🦄</span>
+                        <span class="avatar-opt" data-emoji="👩‍💻">👩‍💻</span>
+                        <span class="avatar-opt" data-emoji="👨‍💻">👨‍💻</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="onboarding-username" style="font-weight: 700; display: block; margin-bottom: 6px; font-size: 0.85rem;">Nombre Completo o Alias:</label>
+                    <input type="text" id="onboarding-username" placeholder="Ingresa tu nombre..." style="width: 100%; border-radius: 12px; padding: 12px 16px; border: 1px solid var(--color-border); background: rgba(0,0,0,0.25); color: white; outline: none; margin-bottom: 12px;">
+                </div>
+                <div class="form-group">
+                    <label for="select-onboarding-institution" style="font-weight: 700; display: block; margin-bottom: 6px; font-size: 0.85rem;">Colegio, Liceo o Escuela:</label>
+                    <select id="select-onboarding-institution" class="select-dropdown" style="margin-bottom: 12px;"></select>
+                </div>
+                <div class="form-group">
+                    <label for="select-onboarding-course" style="font-weight: 700; display: block; margin-bottom: 6px; font-size: 0.85rem;">Curso:</label>
+                    <select id="select-onboarding-course" class="select-dropdown" style="margin-bottom: 12px;"></select>
+                </div>
+                <button class="btn btn-primary btn-large btn-glow w-100" id="btn-submit-onboarding" style="margin-top: 10px;">¡Comenzar mi Aventura! ⚡</button>
+            </div>
         </div>
     </div>
     

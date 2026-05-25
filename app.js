@@ -48,14 +48,163 @@ const DEFAULT_GAME_STATE = {
     hearts: 5,
     lessonsCompleted: [], // Array de IDs de lecciones completadas, ej: "1_1"
     activeView: "dashboard",
-    theme: "dark"
+    theme: "dark",
+    course: "",
+    institution: ""
 };
+
+const defaultInstitutions = [
+    "Liceo Polivalente Juan A. Ríos",
+    "Falcon College",
+    "Fundación Yuntagape"
+];
+const defaultCourses = ["1° Medio", "2° Medio", "3° Medio", "4° Medio"];
+
+let institutionsList = [...defaultInstitutions];
+let coursesList = [...defaultCourses];
 
 let gameState = { ...DEFAULT_GAME_STATE };
 let isTeacherAuthorized = false; // Estado de seguridad de panel docente
 
+// Sincronizar Colegios y Cursos de forma dinámica
+async function syncInstitutionsAndCourses() {
+    if (isFirebaseEnabled && db) {
+        try {
+            const instDoc = await db.collection("config").doc("institutions").get();
+            if (instDoc.exists) {
+                institutionsList = instDoc.data().list || [];
+            } else {
+                await db.collection("config").doc("institutions").set({ list: defaultInstitutions });
+                institutionsList = [...defaultInstitutions];
+            }
+            
+            const courDoc = await db.collection("config").doc("courses").get();
+            if (courDoc.exists) {
+                coursesList = courDoc.data().list || [];
+            } else {
+                await db.collection("config").doc("courses").set({ list: defaultCourses });
+                coursesList = [...defaultCourses];
+            }
+            
+            // Guardar localmente como respaldo
+            localStorage.setItem("prompterquest_institutions", JSON.stringify(institutionsList));
+            localStorage.setItem("prompterquest_courses", JSON.stringify(coursesList));
+        } catch (e) {
+            console.error("Error al sincronizar configuración con Firebase Firestore:", e);
+            loadLocalInstitutionsAndCourses();
+        }
+    } else {
+        loadLocalInstitutionsAndCourses();
+    }
+}
+
+function loadLocalInstitutionsAndCourses() {
+    const savedInst = localStorage.getItem("prompterquest_institutions");
+    const savedCour = localStorage.getItem("prompterquest_courses");
+    if (savedInst) {
+        try { institutionsList = JSON.parse(savedInst); } catch (e) { institutionsList = [...defaultInstitutions]; }
+    } else {
+        institutionsList = [...defaultInstitutions];
+    }
+    if (savedCour) {
+        try { coursesList = JSON.parse(savedCour); } catch (e) { coursesList = [...defaultCourses]; }
+    } else {
+        coursesList = [...defaultCourses];
+    }
+}
+
+async function saveInstitutions() {
+    localStorage.setItem("prompterquest_institutions", JSON.stringify(institutionsList));
+    if (isFirebaseEnabled && db) {
+        try {
+            await db.collection("config").doc("institutions").set({ list: institutionsList });
+        } catch (e) {
+            console.error("Error al guardar establecimientos en Firebase Firestore:", e);
+        }
+    }
+    populateDropdowns();
+}
+
+async function saveCourses() {
+    localStorage.setItem("prompterquest_courses", JSON.stringify(coursesList));
+    if (isFirebaseEnabled && db) {
+        try {
+            await db.collection("config").doc("courses").set({ list: coursesList });
+        } catch (e) {
+            console.error("Error al guardar cursos en Firebase Firestore:", e);
+        }
+    }
+    populateDropdowns();
+}
+
+function populateDropdowns() {
+    const selectOnboardingInst = document.getElementById("select-onboarding-institution");
+    const selectOnboardingCour = document.getElementById("select-onboarding-course");
+    const selectProfileInst = document.getElementById("select-profile-institution");
+    const selectProfileCour = document.getElementById("select-profile-course");
+    
+    // Rellenar Establecimientos
+    let instOptions = `<option value="" disabled selected>Selecciona tu colegio o liceo...</option>`;
+    institutionsList.forEach(inst => {
+        instOptions += `<option value="${escapeHTML(inst)}">${escapeHTML(inst)}</option>`;
+    });
+    
+    if (selectOnboardingInst) selectOnboardingInst.innerHTML = instOptions;
+    if (selectProfileInst) {
+        selectProfileInst.innerHTML = instOptions;
+        if (gameState.institution) selectProfileInst.value = gameState.institution;
+    }
+    
+    // Rellenar Cursos
+    let courOptions = `<option value="" disabled selected>Selecciona tu curso...</option>`;
+    coursesList.forEach(cour => {
+        courOptions += `<option value="${escapeHTML(cour)}">${escapeHTML(cour)}</option>`;
+    });
+    
+    if (selectOnboardingCour) selectOnboardingCour.innerHTML = courOptions;
+    if (selectProfileCour) {
+        selectProfileCour.innerHTML = courOptions;
+        if (gameState.course) selectProfileCour.value = gameState.course;
+    }
+}
+
+function checkOnboarding() {
+    const overlay = document.getElementById("onboarding-overlay");
+    if (!overlay) return;
+    
+    if (!gameState.course || !gameState.institution) {
+        overlay.classList.remove("hidden");
+        populateDropdowns();
+        
+        // Selector de avatar interactivo en Onboarding
+        const onboardingAvatarPreview = document.getElementById("onboarding-avatar-preview");
+        if (onboardingAvatarPreview) onboardingAvatarPreview.innerText = gameState.avatarEmoji || "🚀";
+        
+        const onboardingOpts = document.querySelectorAll("#onboarding-overlay .avatar-opt");
+        onboardingOpts.forEach(opt => {
+            opt.classList.remove("active");
+            if (opt.getAttribute("data-emoji") === gameState.avatarEmoji) {
+                opt.classList.add("active");
+            }
+            opt.onclick = () => {
+                playSound('click');
+                onboardingOpts.forEach(o => o.classList.remove("active"));
+                opt.classList.add("active");
+                gameState.avatarEmoji = opt.getAttribute("data-emoji");
+                if (onboardingAvatarPreview) {
+                    onboardingAvatarPreview.innerText = gameState.avatarEmoji;
+                    onboardingAvatarPreview.classList.add("animate-pop");
+                    setTimeout(() => onboardingAvatarPreview.classList.remove("animate-pop"), 300);
+                }
+            };
+        });
+    } else {
+        overlay.classList.add("hidden");
+    }
+}
+
 // Cargar estado inicial
-function loadGameState() {
+async function loadGameState() {
     const savedState = localStorage.getItem("prompterquest_state");
     if (savedState) {
         try {
@@ -69,6 +218,10 @@ function loadGameState() {
     updateGlobalUIStats();
     renderLeaderboard();
     renderAchievements();
+    
+    // Carga de configuraciones académicas y verificación de onboarding
+    await syncInstitutionsAndCourses();
+    checkOnboarding();
 }
 
 // Guardar estado (Híbrido)
@@ -106,6 +259,10 @@ async function loadCloudProgress(user) {
         updateDashboardNodes();
         renderLeaderboard();
         renderAchievements();
+        
+        // Sincronizar configuraciones y verificar onboarding
+        await syncInstitutionsAndCourses();
+        checkOnboarding();
         initProfileView();
     } catch (error) {
         console.error("❌ Error al cargar progreso desde la nube:", error);
@@ -890,6 +1047,7 @@ function initProfileView() {
     const pStreak = document.getElementById("profile-streak-days");
     const pLessons = document.getElementById("profile-lessons-completed");
     const pRank = document.getElementById("profile-rank-badge");
+    const pSubDetails = document.getElementById("profile-sub-details");
 
     if (pUsername) pUsername.innerText = gameState.username;
     if (iUsername) iUsername.value = gameState.username;
@@ -907,12 +1065,22 @@ function initProfileView() {
     if (pStreak) pStreak.innerText = gameState.streak;
     if (pLessons) pLessons.innerText = gameState.lessonsCompleted.length;
     
+    // Subtítulo del perfil con colegio y curso
+    if (pSubDetails) {
+        const cur = gameState.course || "Sin curso";
+        const inst = gameState.institution || "Sin colegio";
+        pSubDetails.innerText = `Estudiante | ${cur} | ${inst}`;
+    }
+    
     let rank = "Ingeniero Novato";
     if (gameState.xp >= 200) rank = "Maestro Prompter de Primero Medio";
     else if (gameState.xp >= 100) rank = "Ingeniero de Prompts Intermedio";
     else if (gameState.xp >= 40) rank = "Prompt Specialist Junior";
     
     if (pRank) pRank.innerText = rank;
+    
+    // Poblar selectores de perfil
+    populateDropdowns();
 }
 
 function updateDashboardNodes() {
@@ -2035,6 +2203,40 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+// Lógica de Eliminación Masiva de Estudiantes
+async function deleteAllStudents() {
+    playSound('click');
+    if (confirm("⚠️ ¿Estás COMPLETAMENTE SEGURO de que quieres eliminar a TODOS los estudiantes de la base de datos? Esta acción es irreversible y borrará el progreso de todos.")) {
+        if (confirm("🚨 ÚLTIMA CONFIRMACIÓN: ¿Deseas proceder? Se perderán todos los datos de forma permanente.")) {
+            if (isFirebaseEnabled && db) {
+                try {
+                    const querySnapshot = await db.collection("users").get();
+                    const batch = db.batch();
+                    let count = 0;
+                    querySnapshot.forEach((doc) => {
+                        batch.delete(doc.ref);
+                        count++;
+                    });
+                    if (count > 0) {
+                        await batch.commit();
+                        playSound('incorrect');
+                        alert("¡Todos los alumnos han sido eliminados de la nube de Firebase Firestore!");
+                    } else {
+                        alert("No hay alumnos registrados para eliminar.");
+                    }
+                    fetchStudentList();
+                } catch (e) {
+                    console.error("Error al borrar alumnos de la nube:", e);
+                    alert("Ocurrió un error al intentar eliminar masivamente de la nube.");
+                }
+            } else {
+                playSound('incorrect');
+                alert("Estás en Modo Local de demostración. No se pueden eliminar los alumnos simulados permanentes.");
+            }
+        }
+    }
+}
+
     // 6. EVENTOS DEL PANEL DOCENTE
     
     // Vincular clic del Panel Docente en Sidebar
@@ -2092,7 +2294,145 @@ document.addEventListener("DOMContentLoaded", () => {
         copyGradesBtn.addEventListener("click", copyGradesToClipboard);
     }
 
-    // 7. CARGA DE INICIO LOCAL
+    // Eliminar todos los estudiantes
+    const deleteAllStudentsBtn = document.getElementById("btn-delete-all-students");
+    if (deleteAllStudentsBtn) {
+        deleteAllStudentsBtn.addEventListener("click", deleteAllStudents);
+    }
+
+    // Agregar nuevo establecimiento desde el panel docente
+    const addInstitutionBtn = document.getElementById("btn-teacher-add-institution");
+    if (addInstitutionBtn) {
+        addInstitutionBtn.addEventListener("click", () => {
+            playSound('click');
+            const input = document.getElementById("teacher-new-institution");
+            const newInstVal = input ? input.value.trim() : "";
+            
+            if (!newInstVal) {
+                alert("⚠️ Por favor escribe el nombre de un establecimiento.");
+                return;
+            }
+            
+            if (institutionsList.includes(newInstVal)) {
+                alert("⚠️ Este establecimiento ya existe en la lista.");
+                return;
+            }
+            
+            institutionsList.push(newInstVal);
+            saveInstitutions().then(() => {
+                if (input) input.value = "";
+                playSound('correct');
+                alert(`🏫 "${newInstVal}" ha sido agregado correctamente.`);
+            });
+        });
+    }
+
+    // Agregar nuevo curso desde el panel docente
+    const addCourseBtn = document.getElementById("btn-teacher-add-course");
+    if (addCourseBtn) {
+        addCourseBtn.addEventListener("click", () => {
+            playSound('click');
+            const input = document.getElementById("teacher-new-course");
+            const newCourVal = input ? input.value.trim() : "";
+            
+            if (!newCourVal) {
+                alert("⚠️ Por favor escribe el nombre del curso.");
+                return;
+            }
+            
+            if (coursesList.includes(newCourVal)) {
+                alert("⚠️ Este curso ya existe en la lista.");
+                return;
+            }
+            
+            coursesList.push(newCourVal);
+            saveCourses().then(() => {
+                if (input) input.value = "";
+                playSound('correct');
+                alert(`📚 "${newCourVal}" ha sido agregado correctamente.`);
+            });
+        });
+    }
+
+    // 7. EVENTOS DE ONBOARDING Y ACORDEONES
+    
+    // Guardar Onboarding de bienvenida
+    const submitOnboardingBtn = document.getElementById("btn-submit-onboarding");
+    if (submitOnboardingBtn) {
+        submitOnboardingBtn.addEventListener("click", () => {
+            playSound('click');
+            const usernameInput = document.getElementById("onboarding-username");
+            const selectInst = document.getElementById("select-onboarding-institution");
+            const selectCour = document.getElementById("select-onboarding-course");
+            
+            const username = usernameInput ? usernameInput.value.trim() : "";
+            const institution = selectInst ? selectInst.value : "";
+            const course = selectCour ? selectCour.value : "";
+            
+            if (!username) {
+                alert("⚠️ Por favor, ingresa tu nombre o alias.");
+                return;
+            }
+            if (!institution) {
+                alert("⚠️ Por favor, selecciona tu colegio o liceo.");
+                return;
+            }
+            if (!course) {
+                alert("⚠️ Por favor, selecciona tu curso.");
+                return;
+            }
+            
+            gameState.username = username;
+            gameState.institution = institution;
+            gameState.course = course;
+            
+            saveGameState().then(() => {
+                const overlay = document.getElementById("onboarding-overlay");
+                if (overlay) overlay.classList.add("hidden");
+                
+                // Actualizar vistas y estadísticas
+                updateGlobalUIStats();
+                renderLeaderboard();
+                initProfileView();
+                alert(`¡Excelente! Bienvenido(a) ${username}. Tu perfil ha sido configurado.`);
+            });
+        });
+    }
+
+    // Acordeones de Objetivos y Competencias
+    document.querySelectorAll(".btn-accordion-toggle").forEach(btn => {
+        btn.addEventListener("click", () => {
+            playSound('click');
+            btn.classList.toggle("active");
+            const unit = btn.getAttribute("data-unit");
+            const panel = document.getElementById(`panel-${unit}`);
+            if (panel) {
+                panel.classList.toggle("active");
+            }
+        });
+    });
+
+    // Guardado automático al cambiar dropdowns en Perfil
+    const selectProfileInst = document.getElementById("select-profile-institution");
+    const selectProfileCour = document.getElementById("select-profile-course");
+    if (selectProfileInst) {
+        selectProfileInst.addEventListener("change", () => {
+            playSound('click');
+            gameState.institution = selectProfileInst.value;
+            saveGameState();
+            initProfileView();
+        });
+    }
+    if (selectProfileCour) {
+        selectProfileCour.addEventListener("change", () => {
+            playSound('click');
+            gameState.course = selectProfileCour.value;
+            saveGameState();
+            initProfileView();
+        });
+    }
+
+    // 8. CARGA DE INICIO LOCAL
     loadGameState();
     showView(gameState.activeView || "dashboard");
 });
