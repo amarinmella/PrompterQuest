@@ -909,7 +909,7 @@
                 <h2>¡Bienvenido a PrompterQuest! 🚀</h2>
                 <p>Configura tu avatar y tus datos académicos para comenzar tu aventura de aprendizaje en Ingeniería de Prompts.</p>
             </div>
-            <div class="onboarding-form">
+            <div id="onboarding-student-form" class="onboarding-form">
                 <div class="onboarding-avatar-selection">
                     <div class="onboarding-avatar-preview" id="onboarding-avatar-preview">🚀</div>
                     <div class="avatar-selector" style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: 4px; margin-bottom: 4px;">
@@ -937,6 +937,20 @@
                     <select id="select-onboarding-course" class="select-dropdown" style="margin-bottom: 8px;"></select>
                 </div>
                 <button class="btn btn-primary btn-sm btn-glow w-100" id="btn-submit-onboarding" style="margin-top: 6px; padding: 12px; font-size: 1.05rem;">¡Comenzar mi Aventura! ⚡</button>
+                <div style="text-align: center; margin-top: 12px;">
+                    <a href="#" id="link-show-teacher-login" style="color: var(--color-text-muted); font-size: 0.85rem; text-decoration: underline;">Ingresar como Profesor / Administrador</a>
+                </div>
+            </div>
+            
+            <div id="onboarding-teacher-login" class="hidden">
+                <h3 style="text-align: center; margin-bottom: 12px; font-family: 'Outfit', sans-serif;">Acceso Docente</h3>
+                <p style="text-align: center; color: var(--color-text-muted); font-size: 0.85rem; margin-bottom: 20px;">Ingresa tu PIN de administrador para continuar.</p>
+                <input type="password" id="onboarding-teacher-pin" placeholder="PIN..." style="width: 100%; border-radius: 12px; padding: 10px 14px; border: 1px solid var(--color-border); background: rgba(0,0,0,0.25); color: white; outline: none; margin-bottom: 12px; text-align: center; letter-spacing: 4px; font-size: 1.2rem;">
+                <p id="onboarding-teacher-error" class="hidden" style="color: var(--color-crimson); font-size: 0.8rem; text-align: center; margin-bottom: 12px;">❌ PIN incorrecto.</p>
+                <button class="btn btn-primary btn-sm btn-glow w-100" id="btn-submit-teacher-login" style="padding: 12px; font-size: 1.05rem;">Acceder al Panel</button>
+                <div style="text-align: center; margin-top: 16px;">
+                    <a href="#" id="link-back-to-student" style="color: var(--color-text-muted); font-size: 0.85rem; text-decoration: underline;">← Volver al registro de estudiante</a>
+                </div>
             </div>
         </div>
     </div>

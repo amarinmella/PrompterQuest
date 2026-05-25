@@ -50,7 +50,8 @@ const DEFAULT_GAME_STATE = {
     activeView: "dashboard",
     theme: "dark",
     course: "",
-    institution: ""
+    institution: "",
+    role: "student"
 };
 
 const defaultInstitutions = [
@@ -2404,6 +2405,7 @@ async function deleteAllStudents() {
             gameState.username = username;
             gameState.institution = institution;
             gameState.course = course;
+            gameState.role = 'student';
             
             saveGameState().then(() => {
                 const overlay = document.getElementById("onboarding-overlay");
@@ -2416,6 +2418,70 @@ async function deleteAllStudents() {
                 alert(`¡Excelente! Bienvenido(a) ${username}. Tu perfil ha sido configurado.`);
             });
         });
+    }
+
+    // Toggle para Onboarding: Estudiante vs Profesor
+    const linkShowTeacherLogin = document.getElementById("link-show-teacher-login");
+    const linkBackToStudent = document.getElementById("link-back-to-student");
+    const onboardingStudentForm = document.getElementById("onboarding-student-form");
+    const onboardingTeacherLogin = document.getElementById("onboarding-teacher-login");
+    
+    if (linkShowTeacherLogin && linkBackToStudent && onboardingStudentForm && onboardingTeacherLogin) {
+        linkShowTeacherLogin.addEventListener("click", (e) => {
+            e.preventDefault();
+            playSound('click');
+            onboardingStudentForm.classList.add("hidden");
+            onboardingTeacherLogin.classList.remove("hidden");
+        });
+        
+        linkBackToStudent.addEventListener("click", (e) => {
+            e.preventDefault();
+            playSound('click');
+            onboardingTeacherLogin.classList.add("hidden");
+            onboardingStudentForm.classList.remove("hidden");
+        });
+    }
+
+    // Submit Teacher Login desde Onboarding
+    const submitTeacherLoginBtn = document.getElementById("btn-submit-teacher-login");
+    if (submitTeacherLoginBtn) {
+        submitTeacherLoginBtn.addEventListener("click", () => {
+            playSound('click');
+            const pinVal = document.getElementById("onboarding-teacher-pin").value;
+            const errEl = document.getElementById("onboarding-teacher-error");
+            
+            if (pinVal === "2026") {
+                playSound('correct');
+                if (errEl) errEl.classList.add("hidden");
+                
+                // Configurar como profesor
+                gameState.role = 'teacher';
+                gameState.username = 'Profesor / Administrador';
+                
+                saveGameState().then(() => {
+                    const overlay = document.getElementById("onboarding-overlay");
+                    if (overlay) overlay.classList.add("hidden");
+                    
+                    isTeacherAuthorized = true;
+                    showView("teacher");
+                    initTeacherView();
+                });
+            } else {
+                playSound('incorrect');
+                if (errEl) errEl.classList.remove("hidden");
+                document.getElementById("onboarding-teacher-pin").value = "";
+            }
+        });
+        
+        // Enter en PIN de onboarding
+        const onboardingPinInput = document.getElementById("onboarding-teacher-pin");
+        if (onboardingPinInput) {
+            onboardingPinInput.addEventListener("keypress", (e) => {
+                if (e.key === "Enter") {
+                    submitTeacherLoginBtn.click();
+                }
+            });
+        }
     }
 
     // Acordeones de Objetivos y Competencias
