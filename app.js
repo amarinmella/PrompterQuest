@@ -2273,18 +2273,32 @@ async function deleteAllStudents() {
     if (unlockBtn) {
         unlockBtn.addEventListener("click", () => {
             playSound('click');
+            const emailVal = document.getElementById("teacher-email-input").value.trim();
             const pinVal = document.getElementById("teacher-pin-input").value;
             const errEl = document.getElementById("lock-error-msg");
             
-            if (pinVal === "2026") {
+            const handleSuccess = () => {
                 playSound('correct');
                 isTeacherAuthorized = true;
                 if (errEl) errEl.classList.add("hidden");
                 initTeacherView();
-            } else {
+            };
+            const handleError = () => {
                 playSound('incorrect');
                 if (errEl) errEl.classList.remove("hidden");
                 document.getElementById("teacher-pin-input").value = "";
+            };
+
+            if (emailVal === "andres.marin@falconcollege.cl" && pinVal === "amm050620@") {
+                handleSuccess();
+            } else if (isFirebaseEnabled && firebase.auth) {
+                firebase.auth().signInWithEmailAndPassword(emailVal, pinVal).then((userCred) => {
+                    handleSuccess();
+                }).catch((err) => {
+                    handleError();
+                });
+            } else {
+                handleError();
             }
         });
     }
@@ -2447,10 +2461,11 @@ async function deleteAllStudents() {
     if (submitTeacherLoginBtn) {
         submitTeacherLoginBtn.addEventListener("click", () => {
             playSound('click');
+            const emailVal = document.getElementById("onboarding-teacher-email").value.trim();
             const pinVal = document.getElementById("onboarding-teacher-pin").value;
             const errEl = document.getElementById("onboarding-teacher-error");
             
-            if (pinVal === "2026") {
+            const handleSuccess = () => {
                 playSound('correct');
                 if (errEl) errEl.classList.add("hidden");
                 
@@ -2466,10 +2481,23 @@ async function deleteAllStudents() {
                     showView("teacher");
                     initTeacherView();
                 });
-            } else {
+            };
+            const handleError = () => {
                 playSound('incorrect');
                 if (errEl) errEl.classList.remove("hidden");
                 document.getElementById("onboarding-teacher-pin").value = "";
+            };
+
+            if (emailVal === "andres.marin@falconcollege.cl" && pinVal === "amm050620@") {
+                handleSuccess();
+            } else if (isFirebaseEnabled && firebase.auth) {
+                firebase.auth().signInWithEmailAndPassword(emailVal, pinVal).then((userCred) => {
+                    handleSuccess();
+                }).catch((err) => {
+                    handleError();
+                });
+            } else {
+                handleError();
             }
         });
         

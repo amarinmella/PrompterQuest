@@ -643,13 +643,14 @@
                     <div id="teacher-lock-screen" class="teacher-lock-card glass-card">
                         <span class="lock-big-icon">🔒</span>
                         <h3>Acceso Exclusivo para el Docente</h3>
-                        <p>Ingresa el PIN de seguridad de 4 dígitos para acceder al panel de alumnos.</p>
+                        <p>Ingresa tus credenciales para acceder al panel de alumnos.</p>
                         
-                        <div class="pin-input-group">
-                            <input type="password" id="teacher-pin-input" maxlength="4" placeholder="••••" autocomplete="off" style="text-align: center; letter-spacing: 8px; font-size: 1.5rem; width: 120px; border-radius: 12px; padding: 8px; border: 1px solid var(--color-border); background: rgba(0,0,0,0.2); color: white;">
-                            <button class="btn btn-primary" id="btn-unlock-teacher">Desbloquear ⚡</button>
+                        <div class="pin-input-group" style="flex-direction: column; gap: 12px; align-items: center; margin-top: 16px; display: flex;">
+                            <input type="email" id="teacher-email-input" placeholder="Correo electrónico..." autocomplete="off" style="text-align: center; font-size: 1rem; width: 260px; border-radius: 12px; padding: 10px; border: 1px solid var(--color-border); background: rgba(0,0,0,0.2); color: white; max-width: 100%;">
+                            <input type="password" id="teacher-pin-input" placeholder="Contraseña..." autocomplete="off" style="text-align: center; font-size: 1rem; width: 260px; border-radius: 12px; padding: 10px; border: 1px solid var(--color-border); background: rgba(0,0,0,0.2); color: white; max-width: 100%;">
+                            <button class="btn btn-primary" id="btn-unlock-teacher" style="width: 260px; max-width: 100%;">Desbloquear 🔓</button>
                         </div>
-                        <p id="lock-error-msg" class="lock-error hidden" style="color: var(--color-crimson); font-size: 0.82rem; font-weight: 700; margin-top: 10px;">❌ PIN incorrecto. Intenta nuevamente.</p>
+                        <p id="lock-error-msg" class="lock-error hidden" style="color: var(--color-crimson); font-size: 0.82rem; font-weight: 700; margin-top: 10px;">❌ Credenciales incorrectas. Intenta nuevamente.</p>
                     </div>
 
                     <!-- 2. CONTENIDO PRINCIPAL DEL DASHBOARD (Inicialmente oculto) -->
@@ -944,9 +945,10 @@
             
             <div id="onboarding-teacher-login" class="hidden">
                 <h3 style="text-align: center; margin-bottom: 12px; font-family: 'Outfit', sans-serif;">Acceso Docente</h3>
-                <p style="text-align: center; color: var(--color-text-muted); font-size: 0.85rem; margin-bottom: 20px;">Ingresa tu PIN de administrador para continuar.</p>
-                <input type="password" id="onboarding-teacher-pin" placeholder="PIN..." style="width: 100%; border-radius: 12px; padding: 10px 14px; border: 1px solid var(--color-border); background: rgba(0,0,0,0.25); color: white; outline: none; margin-bottom: 12px; text-align: center; letter-spacing: 4px; font-size: 1.2rem;">
-                <p id="onboarding-teacher-error" class="hidden" style="color: var(--color-crimson); font-size: 0.8rem; text-align: center; margin-bottom: 12px;">❌ PIN incorrecto.</p>
+                <p style="text-align: center; color: var(--color-text-muted); font-size: 0.85rem; margin-bottom: 20px;">Ingresa tus credenciales de administrador para continuar.</p>
+                <input type="email" id="onboarding-teacher-email" placeholder="Correo electrónico..." style="width: 100%; border-radius: 12px; padding: 10px 14px; border: 1px solid var(--color-border); background: rgba(0,0,0,0.25); color: white; outline: none; margin-bottom: 8px; font-size: 0.95rem;">
+                <input type="password" id="onboarding-teacher-pin" placeholder="Contraseña..." style="width: 100%; border-radius: 12px; padding: 10px 14px; border: 1px solid var(--color-border); background: rgba(0,0,0,0.25); color: white; outline: none; margin-bottom: 12px; font-size: 0.95rem;">
+                <p id="onboarding-teacher-error" class="hidden" style="color: var(--color-crimson); font-size: 0.8rem; text-align: center; margin-bottom: 12px;">❌ Credenciales incorrectas.</p>
                 <button class="btn btn-primary btn-sm btn-glow w-100" id="btn-submit-teacher-login" style="padding: 12px; font-size: 1.05rem;">Acceder al Panel</button>
                 <div style="text-align: center; margin-top: 16px;">
                     <a href="#" id="link-back-to-student" style="color: var(--color-text-muted); font-size: 0.85rem; text-decoration: underline;">← Volver al registro de estudiante</a>
