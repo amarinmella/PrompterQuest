@@ -2351,6 +2351,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     console.error("Error al guardar autorización:", err);
                     alert("Error de base de datos al autorizar: " + err.message);
                 });
+            } else {
+                alert("⚠️ No se puede autorizar al estudiante porque Firebase no está configurado.\n\nPor favor, abre el archivo 'app.js' en tu editor de código y actualiza la constante 'firebaseConfig' al inicio del archivo con tus credenciales reales de la consola de Firebase.");
             }
         });
     }
