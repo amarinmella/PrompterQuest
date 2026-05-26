@@ -950,10 +950,10 @@ body.light-theme .mission-item {
 }
 
 /* Chips Detectados (Glow) */
-.chip.active-r { background-color: rgba(255, 183, 3, 0.12); border-color: var(--color-gold); box-shadow: 0 0 10px rgba(255, 183, 3, 0.2); }
-.chip.active-c { background-color: rgba(0, 242, 254, 0.12); border-color: var(--color-cyan); box-shadow: 0 0 10px rgba(0, 242, 254, 0.2); }
-.chip.active-t { background-color: rgba(0, 230, 118, 0.12); border-color: var(--color-emerald); box-shadow: 0 0 10px rgba(0, 230, 118, 0.2); }
-.chip.active-f { background-color: rgba(157, 78, 221, 0.12); border-color: var(--color-purple); box-shadow: 0 0 10px rgba(157, 78, 221, 0.2); }
+.chip.active-r { background-color: rgba(255, 183, 3, 0.12); border-color: var(--color-gold); box-shadow: 0 0 10px rgba(255, 183, 3, 0.2); transform: scale(1.05); }
+.chip.active-c { background-color: rgba(0, 242, 254, 0.12); border-color: var(--color-cyan); box-shadow: 0 0 10px rgba(0, 242, 254, 0.2); transform: scale(1.05); }
+.chip.active-t { background-color: rgba(0, 230, 118, 0.12); border-color: var(--color-emerald); box-shadow: 0 0 10px rgba(0, 230, 118, 0.2); transform: scale(1.05); }
+.chip.active-f { background-color: rgba(157, 78, 221, 0.12); border-color: var(--color-purple); box-shadow: 0 0 10px rgba(157, 78, 221, 0.2); transform: scale(1.05); }
 
 .chip-status {
     font-size: 0.65rem;
@@ -2850,6 +2850,70 @@ body.light-theme .crud-form-layout input {
 
 body.light-theme .crud-form-layout label {
     color: #1e1b4b !important;
+}
+
+/* ==========================================================================
+   ESTILOS DE IMPRESIÓN DE CREDENCIALES PDF RECORTABLES (@media print)
+   ========================================================================== */
+.print-only {
+    display: none;
+}
+
+@media print {
+    /* Ocultar absolutamente toda la interfaz de la SPA en pantalla */
+    body * {
+        visibility: hidden;
+    }
+    
+    /* Mostrar exclusivamente el contenedor de tarjetas de impresión */
+    #print-credentials-area, #print-credentials-area * {
+        visibility: visible;
+    }
+    
+    #print-credentials-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        display: block !important;
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    
+    /* Configuración de página limpia sin cabeceras/pies de página del navegador */
+    @page {
+        size: letter;
+        margin: 1.5cm;
+    }
+    
+    .print-header {
+        display: block !important;
+        text-align: center;
+        margin-bottom: 24px;
+    }
+    
+    .print-cards-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 16px !important;
+        width: 100% !important;
+    }
+    
+    .print-card-item {
+        border: 2px dashed #9d4ede !important;
+        border-radius: 12px !important;
+        padding: 18px !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        box-sizing: border-box !important;
+        page-break-inside: avoid !important;
+        height: 180px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
 }
 
 

@@ -1646,6 +1646,9 @@ async function fetchStudentList() {
     document.getElementById("teacher-total-students").innerText = allStudents.length;
     document.getElementById("teacher-average-xp").innerText = avgXP;
     document.getElementById("teacher-top-student").innerText = `${topStudentName} (🔥 ${maxStreak})`;
+
+    // Actualizar Gráficos de Analítica con Chart.js
+    updateTeacherCharts(allStudents);
 }
 
 // Recompensar XP en Caliente
@@ -1869,10 +1872,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 2. RETO DIARIO Y SANDBOX (ARENA)
     
-    // Botón de Enviar Prompt en Sandbox
+    // Botón de Enviar Prompt en Sandbox y análisis interactivo en tiempo real
     const sendPromptBtn = document.getElementById("btn-send-prompt");
     const promptInput = document.getElementById("prompt-input");
     if (sendPromptBtn && promptInput) {
+        // Analizar texto en tiempo real mientras el alumno escribe
+        promptInput.addEventListener("input", (e) => {
+            analyzePromptText(e.target.value);
+        });
+
         sendPromptBtn.addEventListener("click", () => {
             playSound('click');
             const text = promptInput.value;
@@ -2822,6 +2830,197 @@ async function deleteAllStudents() {
             gameState.course = selectProfileCour.value;
             saveGameState();
             initProfileView();
+        });
+    }
+
+    // ==========================================================================
+    // LÓGICA DE GRÁFICOS Y ANALÍTICA DOCENTE CON CHART.JS
+    // ==========================================================================
+    let chartLevelsInstance = null;
+    let chartLessonsInstance = null;
+
+    window.updateTeacherCharts = function(allStudents) {
+        if (typeof Chart === 'undefined') return;
+
+        // 1. Destruir instancias previas para evitar bugs de hover en canvas
+        if (chartLevelsInstance) chartLevelsInstance.destroy();
+        if (chartLessonsInstance) chartLessonsInstance.destroy();
+
+        // 2. Gráfico de Niveles (Barras)
+        const levelsCount = {};
+        allStudents.forEach(s => {
+            levelsCount[s.level] = (levelsCount[s.level] || 0) + 1;
+        });
+        
+        const maxLevel = Math.max(3, ...Object.keys(levelsCount).map(Number));
+        const labelsLevels = [];
+        const dataLevels = [];
+        for (let i = 1; i <= maxLevel; i++) {
+            labelsLevels.push(`Nivel ${i}`);
+            dataLevels.push(levelsCount[i] || 0);
+        }
+
+        const ctxLevels = document.getElementById("chart-levels");
+        if (ctxLevels) {
+            chartLevelsInstance = new Chart(ctxLevels, {
+                type: 'bar',
+                data: {
+                    labels: labelsLevels,
+                    datasets: [{
+                        label: 'Cantidad de Alumnos',
+                        data: dataLevels,
+                        backgroundColor: 'rgba(0, 242, 254, 0.45)',
+                        borderColor: 'rgb(0, 242, 254)',
+                        borderWidth: 2,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8d99ae' } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8d99ae', stepSize: 1 } }
+                    }
+                }
+            });
+        }
+
+        // 3. Gráfico de Tasa de Éxito de Lecciones (Dona/Circular)
+        const completionCount = { 'U1': 0, 'U2': 0, 'U3': 0, 'U4': 0 };
+        allStudents.forEach(s => {
+            if (s.lessonsCompleted.includes("1_3")) completionCount['U1']++;
+            if (s.lessonsCompleted.includes("2_4")) completionCount['U2']++;
+            if (s.lessonsCompleted.includes("3_3")) completionCount['U3']++;
+            if (s.lessonsCompleted.includes("4_3")) completionCount['U4']++;
+        });
+        
+        const totalNum = allStudents.length || 1;
+        const u1Percentage = Math.round((completionCount['U1'] / totalNum) * 100);
+        const u2Percentage = Math.round((completionCount['U2'] / totalNum) * 100);
+        const u3Percentage = Math.round((completionCount['U3'] / totalNum) * 100);
+        const u4Percentage = Math.round((completionCount['U4'] / totalNum) * 100);
+
+        const ctxLessons = document.getElementById("chart-lessons");
+        if (ctxLessons) {
+            chartLessonsInstance = new Chart(ctxLessons, {
+                type: 'doughnut',
+                data: {
+                    labels: ['U1 (RCTF) %', 'U2 (CREA) %', 'U3 (CREATE) %', 'U4 (Final) %'],
+                    datasets: [{
+                        data: [u1Percentage, u2Percentage, u3Percentage, u4Percentage],
+                        backgroundColor: [
+                            'rgba(0, 242, 254, 0.55)',
+                            'rgba(157, 78, 221, 0.55)',
+                            'rgba(255, 183, 3, 0.55)',
+                            'rgba(0, 230, 118, 0.55)'
+                        ],
+                        borderColor: [
+                            'rgb(0, 242, 254)',
+                            'rgb(157, 78, 221)',
+                            'rgb(255, 183, 3)',
+                            'rgb(0, 230, 118)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { color: '#ffffff', font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+        }
+    };
+
+    // ==========================================================================
+    // LÓGICA DE IMPRESIÓN DE CREDENCIALES PDF RECORTABLES
+    // ==========================================================================
+    const printCredentialsBtn = document.getElementById("btn-print-credentials");
+    if (printCredentialsBtn) {
+        printCredentialsBtn.addEventListener("click", async () => {
+            playSound('click');
+            const printArea = document.getElementById("print-credentials-area");
+            if (!printArea) return;
+
+            printArea.innerHTML = `<div style="padding:40px; text-align:center; color:black; font-family:sans-serif;"><h3>Generando tarjetas de acceso... ⏳</h3></div>`;
+            let students = [];
+
+            if (isFirebaseEnabled) {
+                try {
+                    const querySnapshot = await db.collection("authorized_students").get();
+                    querySnapshot.forEach(doc => {
+                        students.push(doc.data());
+                    });
+                } catch (e) {
+                    console.error("Error al obtener credenciales para imprimir:", e);
+                    alert("Ocurrió un error al obtener las credenciales de Firestore.");
+                    return;
+                }
+            } else {
+                students = [
+                    { name: "Estudiante de Prueba A", email: "alumnoa@colegio.cl", password: "claveprovisoria1" },
+                    { name: "Estudiante de Prueba B", email: "alumnob@colegio.cl", password: "claveprovisoria2" }
+                ];
+            }
+
+            if (students.length === 0) {
+                alert("⚠️ No hay alumnos pre-autorizados o registrados para imprimir.");
+                return;
+            }
+
+            // Construir cuadricula de tarjetas para impresión física
+            let cardsHTML = `
+                <div class="print-header" style="text-align:center; margin-bottom:24px; font-family:'Outfit', sans-serif; display:block;">
+                    <h2 style="margin:0; font-size:24px; color:#1a1a1a;">Tarjetas de Acceso Escolar - PrompterQuest</h2>
+                    <p style="margin:6px 0 0 0; font-size:13px; color:#555;">Entrega esta tarjeta a cada estudiante para ingresar al juego.</p>
+                </div>
+                <div class="print-cards-grid" style="display:grid; grid-template-columns: repeat(2, 1fr); gap:16px; page-break-inside:avoid;">
+            `;
+
+            students.forEach(std => {
+                cardsHTML += `
+                    <div class="print-card-item" style="border:2px dashed #9d4ede; border-radius:12px; padding:18px; background:#ffffff; font-family:sans-serif; color:#000000; box-sizing:border-box; page-break-inside:avoid; height:180px; display:flex; flex-direction:column; justify-content:space-between;">
+                        <div>
+                            <div style="font-size:14px; font-weight:800; color:#9d4ede; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #ddd; padding-bottom:6px;">
+                                <span>🎮 PrompterQuest</span>
+                                <span style="font-size:9px; background:#9d4ede; color:#fff; padding:2px 6px; border-radius:10px; font-weight:700;">Estudiante</span>
+                            </div>
+                            <div style="margin-bottom:6px;">
+                                <span style="font-size:9px; color:#666; text-transform:uppercase; font-weight:700; display:block;">Alumno:</span>
+                                <span style="font-size:13px; font-weight:800; color:#111;">${std.name}</span>
+                            </div>
+                            <div style="margin-bottom:6px;">
+                                <span style="font-size:9px; color:#666; text-transform:uppercase; font-weight:700; display:block;">Correo:</span>
+                                <span style="font-size:11px; font-family:monospace; font-weight:700; color:#222; word-break:break-all;">${std.email}</span>
+                            </div>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; background:#f5efff; padding:6px 10px; border-radius:6px; border:1px solid #dcd0ff;">
+                            <div>
+                                <span style="font-size:8px; color:#666; text-transform:uppercase; font-weight:700; display:block;">Contraseña Inicial:</span>
+                                <span style="font-size:11px; font-family:monospace; font-weight:800; color:#4a0072;">${std.password}</span>
+                            </div>
+                            <span style="font-size:8px; color:#9d4ede; font-weight:700;">amarinmella.github.io</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            cardsHTML += `</div>`;
+            printArea.innerHTML = cardsHTML;
+
+            // Esperar que el DOM renderice y disparar ventana de impresión
+            setTimeout(() => {
+                window.print();
+            }, 300);
         });
     }
 

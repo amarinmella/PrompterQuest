@@ -12,10 +12,10 @@
     <!-- CSS Custom Stylesheet -->
     <link rel="stylesheet" href="styles.css">
     
-    <!-- SDKs de Compatibilidad de Firebase (v9) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="dark-theme">
     <!-- Sonidos de fondo o efectos sintetizados -->
@@ -664,6 +664,7 @@
                                 <button class="btn btn-danger btn-sm btn-danger-glow" id="btn-delete-all-students">🗑️ Borrar Todos los Alumnos</button>
                                 <button class="btn btn-primary btn-sm" id="btn-refresh-students">🔄 Actualizar Lista</button>
                                 <button class="btn btn-primary btn-sm btn-glow" id="btn-copy-grades">📋 Copiar a Excel</button>
+                                <button class="btn btn-primary btn-sm btn-glow" id="btn-print-credentials" style="background: linear-gradient(135deg, var(--color-cyan), var(--color-purple)); border: none;">🖨️ Tarjetas de Acceso PDF</button>
                             </div>
                         </div>
 
@@ -688,6 +689,26 @@
                                 <div class="stat-box-info">
                                     <span class="num" style="font-size: 1.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;" id="teacher-top-student">-</span>
                                     <span class="lbl">Líder de la Racha</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Fila de Gráficos de Analítica Escolar -->
+                        <div class="teacher-charts-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 24px;">
+                            <div class="glass-card" style="padding: 20px; display: flex; flex-direction: column; align-items: center; border: 1px solid var(--color-border); background: rgba(0,0,0,0.25);">
+                                <h4 style="font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 800; color: var(--color-cyan); margin-bottom: 16px; width: 100%; text-align: left; border-bottom: 1px solid var(--color-border); padding-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                                    📊 Distribución de Niveles del Curso
+                                </h4>
+                                <div style="width: 100%; height: 200px; position: relative;">
+                                    <canvas id="chart-levels"></canvas>
+                                </div>
+                            </div>
+                            <div class="glass-card" style="padding: 20px; display: flex; flex-direction: column; align-items: center; border: 1px solid var(--color-border); background: rgba(0,0,0,0.25);">
+                                <h4 style="font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 800; color: var(--color-purple); margin-bottom: 16px; width: 100%; text-align: left; border-bottom: 1px solid var(--color-border); padding-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                                    📈 Tasa de Éxito de Lecciones (%)
+                                </h4>
+                                <div style="width: 100%; height: 200px; position: relative;">
+                                    <canvas id="chart-lessons"></canvas>
                                 </div>
                             </div>
                         </div>
@@ -999,7 +1020,10 @@
         </div>
     </div>
     
+    <!-- Contenedor Especial para Impresión de Credenciales PDF Recortables (Oculto en pantalla) -->
+    <div id="print-credentials-area" class="print-only"></div>
+
     <!-- JS Logic -->
-    <script src="app.js?v=2.2"></script>
+    <script src="app.js?v=2.3"></script>
 </body>
 </html>
