@@ -711,6 +711,50 @@
                             </table>
                         </div>
 
+                        <!-- Gestión y Pre-Autorización de Alumnos (CRUD) -->
+                        <div class="glass-card" style="margin-top: 24px; margin-bottom: 24px;">
+                            <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.2rem; font-weight: 800; margin-bottom: 16px; color: var(--color-purple); border-bottom: 1px solid var(--color-border); padding-bottom: 8px;">
+                                👥 Pre-Autorización de Alumnos (Acceso Nube)
+                            </h3>
+                            <p style="color: var(--color-text-muted); font-size: 0.85rem; margin-bottom: 18px;">
+                                Agrega los correos y contraseñas de tus alumnos. Cuando ellos ingresen con estas credenciales por primera vez, el sistema creará automáticamente sus cuentas de forma segura.
+                            </p>
+                            
+                            <!-- Formulario CRUD -->
+                            <div class="crud-form-layout" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) 160px; gap: 14px; margin-bottom: 24px; align-items: flex-end;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="crud-student-name" style="font-size: 0.78rem; font-weight: 700; color: white; display: block; margin-bottom: 6px;">Nombre del Alumno:</label>
+                                    <input type="text" id="crud-student-name" placeholder="Ej: Juan Pérez" style="width: 100%; border-radius: 12px; padding: 10px 14px; border: 1px solid var(--color-border); background: rgba(0,0,0,0.25); color: white; outline: none;">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="crud-student-email" style="font-size: 0.78rem; font-weight: 700; color: white; display: block; margin-bottom: 6px;">Correo Electrónico:</label>
+                                    <input type="email" id="crud-student-email" placeholder="Ej: jperez@colegio.cl" style="width: 100%; border-radius: 12px; padding: 10px 14px; border: 1px solid var(--color-border); background: rgba(0,0,0,0.25); color: white; outline: none;">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="crud-student-password" style="font-size: 0.78rem; font-weight: 700; color: white; display: block; margin-bottom: 6px;">Contraseña Inicial:</label>
+                                    <input type="password" id="crud-student-password" placeholder="Mín. 6 caracteres" style="width: 100%; border-radius: 12px; padding: 10px 14px; border: 1px solid var(--color-border); background: rgba(0,0,0,0.25); color: white; outline: none;" minlength="6">
+                                </div>
+                                <button class="btn btn-primary" id="btn-crud-save-student" style="width: 100%; height: 42px;">Autorizar ⚡</button>
+                            </div>
+
+                            <!-- Tabla de Pre-Autorizados -->
+                            <div style="overflow-x: auto; border: 1px solid var(--color-border); border-radius: 14px;">
+                                <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left;">
+                                    <thead>
+                                        <tr style="background-color: rgba(0, 0, 0, 0.25); border-bottom: 1px solid var(--color-border);">
+                                            <th style="padding: 12px 18px; color: white; font-weight: 700;">Nombre</th>
+                                            <th style="padding: 12px 18px; color: white; font-weight: 700;">Correo Escolar</th>
+                                            <th style="padding: 12px 18px; color: white; font-weight: 700;">Contraseña</th>
+                                            <th style="padding: 12px 18px; color: white; font-weight: 700; text-align: center;">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="crud-tbody">
+                                        <!-- Inyectado dinámicamente -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
                         <!-- Gestión de Establecimientos y Cursos -->
                         <div class="teacher-management-grid">
                             <div class="glass-card teacher-management-card">
@@ -853,53 +897,36 @@
         </div>
     </div>
     
-    <!-- MODAL DE AUTENTICACIÓN (Firebase Cloud Auth) -->
-    <div id="auth-modal" class="auth-modal-overlay hidden">
+    <!-- PANTALLA DE AUTENTICACIÓN ESCOLAR OBLIGATORIA (Firebase Nube) -->
+    <div id="auth-modal" class="auth-overlay-fullscreen">
         <div class="auth-modal-card glass-card">
-            <button class="btn-close-auth" id="btn-close-auth">✕</button>
-            
+            <!-- Botón de cerrar removido para evitar evasión del login -->
             <div class="auth-header">
-                <div class="auth-logo-wrapper">☁️</div>
-                <h3>Sincronizar con la Nube</h3>
-                <p id="auth-subtitle">Guarda tu progreso para jugar en cualquier computador.</p>
+                <div class="auth-logo-wrapper">🤖</div>
+                <h3>Acceso a PrompterQuest</h3>
+                <p id="auth-subtitle">Ingresa con tu correo y clave entregada por el profesor.</p>
             </div>
 
-            <div class="auth-tabs">
-                <button class="auth-tab active" id="tab-login">Iniciar Sesión</button>
-                <button class="auth-tab" id="tab-register">Crear Cuenta</button>
-            </div>
-
-            <!-- Formulario de Login -->
+            <!-- Formulario de Login Escolar -->
             <form id="form-login" class="auth-form">
                 <div class="form-group">
-                    <label for="login-email">Correo Electrónico:</label>
-                    <input type="email" id="login-email" required placeholder="estudiante@colegio.cl">
+                    <label for="login-email">Correo Electrónico Escolar:</label>
+                    <input type="email" id="login-email" required placeholder="alumno@colegio.cl">
                 </div>
                 <div class="form-group">
-                    <label for="login-password">Contraseña (Mínimo 6 caracteres):</label>
+                    <label for="login-password">Contraseña Escolar:</label>
                     <input type="password" id="login-password" required placeholder="••••••••" minlength="6">
                 </div>
-                <button type="submit" class="btn btn-primary btn-large btn-glow w-100" style="margin-top: 10px;">INGRESAR A LA NUBE ⚡</button>
-            </form>
-
-            <!-- Formulario de Registro -->
-            <form id="form-register" class="auth-form hidden">
-                <div class="form-group">
-                    <label for="reg-username">Nombre del Alumno o Usuario:</label>
-                    <input type="text" id="reg-username" required placeholder="Juan Pérez 1M-A">
-                </div>
-                <div class="form-group">
-                    <label for="reg-email">Correo Electrónico Escolar:</label>
-                    <input type="email" id="reg-email" required placeholder="estudiante@colegio.cl">
-                </div>
-                <div class="form-group">
-                    <label for="reg-password">Contraseña:</label>
-                    <input type="password" id="reg-password" required placeholder="••••••••" minlength="6">
-                </div>
-                <button type="submit" class="btn btn-primary btn-large btn-glow w-100" style="margin-top: 10px;">CREAR CUENTA Y CONECTAR 🚀</button>
+                <button type="submit" class="btn btn-primary btn-large btn-glow w-100" style="margin-top: 16px;">INGRESAR AL JUEGO 🚀</button>
             </form>
 
             <div id="auth-message" class="auth-message hidden"></div>
+
+            <div class="auth-footer-bypass" style="margin-top: 24px; text-align: center; border-top: 1px solid var(--color-border); padding-top: 16px;">
+                <button class="btn btn-sm" id="btn-login-bypass-teacher" style="background: rgba(255,255,255,0.05); color: var(--color-purple); border: 1px solid var(--color-purple); font-weight:700;">
+                    👨‍🏫 Acceso Docente (PIN)
+                </button>
+            </div>
         </div>
     </div>
 

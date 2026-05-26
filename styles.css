@@ -2818,4 +2818,38 @@ body.light-theme .objectives-content {
     transform: translateY(1px);
 }
 
+/* Pantalla de Bloqueo Escolar Obligatoria */
+.auth-overlay-fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #06050f;
+    backdrop-filter: blur(16px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* CRUD Form Layout y Estilos del Panel Docente */
+.crud-form-layout input:focus {
+    outline: none;
+    border-color: var(--color-purple) !important;
+    box-shadow: 0 0 10px var(--color-purple-glow);
+}
+
+body.light-theme .crud-form-layout input {
+    background-color: rgba(255, 255, 255, 0.8) !important;
+    color: #1e1b4b !important;
+    border-color: rgba(0, 0, 0, 0.15) !important;
+}
+
+body.light-theme .crud-form-layout label {
+    color: #1e1b4b !important;
+}
+
 

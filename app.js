@@ -204,36 +204,26 @@ function checkOnboarding() {
     }
 }
 
-// Cargar estado inicial
-async function loadGameState() {
-    const savedState = localStorage.getItem("prompterquest_state");
-    if (savedState) {
-        try {
-            gameState = { ...DEFAULT_GAME_STATE, ...JSON.parse(savedState) };
-        } catch (e) {
-            console.error("Error al cargar el estado, restableciendo...", e);
-            gameState = { ...DEFAULT_GAME_STATE };
-        }
+function loadGameState() {
+    // El progreso se lee y maneja exclusivamente desde la nube de Firebase Firestore.
+    // Solo inicializamos el estado base si no hay sesión iniciada de alumno.
+    if (!currentUser) {
+        gameState = { ...DEFAULT_GAME_STATE };
     }
     applyTheme(gameState.theme);
     updateGlobalUIStats();
     renderLeaderboard();
     renderAchievements();
-    
-    // Carga de configuraciones académicas y verificación de onboarding
-    await syncInstitutionsAndCourses();
-    checkOnboarding();
 }
 
-// Guardar estado (Híbrido)
+// Guardar estado en la Nube
 async function saveGameState() {
-    localStorage.setItem("prompterquest_state", JSON.stringify(gameState));
     updateGlobalUIStats();
 
     if (isFirebaseEnabled && currentUser) {
         try {
             await db.collection("users").doc(currentUser.uid).set(gameState);
-            console.log("☁️ Progreso guardado con éxito en Firebase Firestore.");
+            console.log("☁️ Progreso sincronizado con éxito en Firebase Firestore.");
         } catch (error) {
             console.error("❌ Error al guardar progreso en la nube:", error);
         }
@@ -248,7 +238,6 @@ async function loadCloudProgress(user) {
         if (doc.exists) {
             gameState = { ...DEFAULT_GAME_STATE, ...doc.data() };
             gameState.email = user.email; // Asegurar vinculación de correo
-            localStorage.setItem("prompterquest_state", JSON.stringify(gameState));
             console.log("☁️ Progreso recuperado con éxito desde Firestore.");
         } else {
             console.log("🆕 Usuario nuevo detectado en la nube. Sincronizando progreso actual en Firestore.");
@@ -1009,6 +998,12 @@ function getUnlockedAchievementsCount() {
 }
 
 function showView(viewId) {
+    // Si no está autenticado y no intenta acceder al panel docente, forzar el login escolar
+    if (!currentUser && viewId !== 'teacher') {
+        const authModal = document.getElementById("auth-modal");
+        if (authModal) authModal.classList.remove("hidden");
+    }
+
     document.querySelectorAll(".view-section").forEach(sec => sec.classList.remove("active"));
     document.querySelectorAll(".nav-item").forEach(item => item.classList.remove("active"));
 
@@ -1541,6 +1536,7 @@ function initTeacherView() {
         if (lockScreen) lockScreen.classList.add("hidden");
         if (dashboardContent) dashboardContent.classList.remove("hidden");
         fetchStudentList();
+        fetchAuthorizedStudents(); // Cargar tabla CRUD de alumnos pre-autorizados
     } else {
         if (lockScreen) lockScreen.classList.remove("hidden");
         if (dashboardContent) dashboardContent.classList.add("hidden");
@@ -1757,9 +1753,70 @@ async function copyGradesToClipboard() {
     }
 }
 
+// --- SISTEMA CRUD DE PRE-AUTORIZACIONES DOCENTES ---
+
+async function fetchAuthorizedStudents() {
+    const tbody = document.getElementById("crud-tbody");
+    if (!tbody) return;
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 16px; color: var(--color-cyan); font-weight:700;">Recuperando alumnos autorizados...</td></tr>`;
+
+    if (!isFirebaseEnabled) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 16px; color: var(--color-text-muted);">Firebase no configurado. Activa la base de datos para usar el CRUD.</td></tr>`;
+        return;
+    }
+
+    try {
+        const querySnapshot = await db.collection("authorized_students").orderBy("createdAt", "desc").get();
+        tbody.innerHTML = "";
+        
+        if (querySnapshot.empty) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 16px; color: var(--color-text-muted); font-style: italic;">No hay alumnos pre-autorizados en la lista.</td></tr>`;
+            return;
+        }
+
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            const tr = document.createElement("tr");
+            tr.style.borderBottom = "1px solid var(--color-border)";
+            tr.innerHTML = `
+                <td style="padding: 12px 18px; color: white; font-weight: 700;">${escapeHTML(data.name || '')}</td>
+                <td style="padding: 12px 18px; color: var(--color-text-muted);">${escapeHTML(data.email || '')}</td>
+                <td style="padding: 12px 18px; color: var(--color-gold); font-family: monospace;">${escapeHTML(data.password || '')}</td>
+                <td style="padding: 12px 18px; text-align: center;">
+                    <button class="btn-teacher-action delete" onclick="deleteAuthorizedStudent('${doc.id}')">
+                        <span>Eliminar ❌</span>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } catch (e) {
+        console.error("Error al obtener autorizaciones:", e);
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 16px; color: var(--color-crimson); font-weight:700;">⚠️ Error al cargar autorizaciones.</td></tr>`;
+    }
+}
+
+async function deleteAuthorizedStudent(id) {
+    if (!isFirebaseEnabled) return;
+    playSound('click');
+    if (confirm("¿Estás seguro de que quieres eliminar a este estudiante de la lista de autorizados? Ya no podrá ingresar al juego.")) {
+        try {
+            await db.collection("authorized_students").doc(id).delete();
+            playSound('incorrect');
+            alert("Autorización eliminada con éxito.");
+            fetchAuthorizedStudents();
+        } catch (e) {
+            console.error("Error al eliminar autorización:", e);
+            alert("No se pudo eliminar la autorización.");
+        }
+    }
+}
+
 // Exponer funciones interactiva al scope global de la ventana
 window.rewardStudent = rewardStudent;
 window.deleteStudent = deleteStudent;
+window.deleteAuthorizedStudent = deleteAuthorizedStudent;
+window.fetchAuthorizedStudents = fetchAuthorizedStudents;
 
 // ==========================================================================
 // 11. BINDING DE EVENTOS DOCENTES
@@ -2035,7 +2092,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 5. INTEGRACIÓN Y AUTENTICACIÓN FIREBASE CLOUD
     
-    // Control de Estado de Sesión en Firebase (Nube)
+    // Control de Estado de Sesión en Firebase (Nube) - Bloqueo Obligatorio
     if (isFirebaseEnabled) {
         firebase.auth().onAuthStateChanged(user => {
             const cloudBtn = document.getElementById("btn-nav-cloud");
@@ -2046,6 +2103,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (user) {
                 currentUser = user;
+                
+                // Ocultar pantalla de bloqueo obligatorio de forma inmediata
+                const authModal = document.getElementById("auth-modal");
+                if (authModal) authModal.classList.add("hidden");
+
                 if (cloudBtn) {
                     cloudBtn.classList.remove("disconnected");
                     cloudBtn.classList.add("connected");
@@ -2060,6 +2122,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 loadCloudProgress(user);
             } else {
                 currentUser = null;
+                
+                // Mostrar pantalla de bloqueo obligatorio (a menos que estemos en el Panel Docente)
+                const authModal = document.getElementById("auth-modal");
+                if (authModal && gameState.activeView !== "teacher") {
+                    authModal.classList.remove("hidden");
+                }
+
                 if (cloudBtn) {
                     cloudBtn.classList.remove("connected");
                     cloudBtn.classList.add("disconnected");
@@ -2141,12 +2210,12 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Envío del Formulario de Inicio de Sesión
+    // Envío del Formulario de Inicio de Sesión (Con Auto-Registro de alumnos pre-autorizados)
     if (formLogin) {
         formLogin.addEventListener("submit", (e) => {
             e.preventDefault();
             playSound('click');
-            const email = document.getElementById("login-email").value;
+            const email = document.getElementById("login-email").value.trim().toLowerCase();
             const password = document.getElementById("login-password").value;
             const msg = document.getElementById("auth-message");
 
@@ -2156,6 +2225,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     msg.className = "auth-message warning";
                     msg.innerText = "Conectando con la nube...";
                 }
+
+                // Intentar primeramente iniciar sesión directa
                 firebase.auth().signInWithEmailAndPassword(email, password)
                     .then(() => {
                         if (msg) {
@@ -2169,57 +2240,131 @@ document.addEventListener("DOMContentLoaded", () => {
                         }, 1500);
                     })
                     .catch((error) => {
-                        if (msg) {
-                            msg.className = "auth-message error";
-                            msg.innerText = `Error: ${error.message}`;
-                        }
+                        console.log("Intento de login directo falló. Buscando pre-autorización escolar...", error.code);
+                        
+                        // Si el usuario no existe, o las credenciales no son válidas en Auth, verificar pre-autorización en Firestore
+                        db.collection("authorized_students")
+                            .where("email", "==", email)
+                            .where("password", "==", password)
+                            .get()
+                            .then((snapshot) => {
+                                if (!snapshot.empty) {
+                                    // ¡Existe pre-autorización! Registrar al alumno de forma automática
+                                    if (msg) {
+                                        msg.className = "auth-message success";
+                                        msg.innerText = "¡Primer ingreso escolar detectado! Creando tu cuenta segura...";
+                                    }
+                                    
+                                    const authorizedDoc = snapshot.docs[0];
+                                    const studentName = authorizedDoc.data().name;
+                                    
+                                    firebase.auth().createUserWithEmailAndPassword(email, password)
+                                        .then((userCredential) => {
+                                            const user = userCredential.user;
+                                            
+                                            // Inicializar el estado de juego directamente en la colección 'users' de Firestore
+                                            const initialProfile = {
+                                                ...DEFAULT_GAME_STATE,
+                                                username: studentName,
+                                                email: email
+                                            };
+                                            
+                                            db.collection("users").doc(user.uid).set(initialProfile)
+                                                .then(() => {
+                                                    if (msg) {
+                                                        msg.innerText = "¡Cuenta activada con éxito! Entrando al juego...";
+                                                    }
+                                                    setTimeout(() => {
+                                                        const authModal = document.getElementById("auth-modal");
+                                                        if (authModal) authModal.classList.add("hidden");
+                                                        if (msg) msg.classList.add("hidden");
+                                                    }, 1500);
+                                                });
+                                        })
+                                        .catch((regError) => {
+                                            console.error("Error al auto-registrar:", regError);
+                                            if (msg) {
+                                                msg.className = "auth-message error";
+                                                msg.innerText = `Error de registro automático: ${regError.message}`;
+                                            }
+                                        });
+                                } else {
+                                    // No existe en autorizados tampoco. Credenciales incorrectas.
+                                    if (msg) {
+                                        msg.className = "auth-message error";
+                                        msg.innerText = "Acceso Denegado. Correo o contraseña escolar incorrectos.";
+                                    }
+                                }
+                            })
+                            .catch((fsError) => {
+                                console.error("Error al consultar autorizaciones:", fsError);
+                                if (msg) {
+                                    msg.className = "auth-message error";
+                                    msg.innerText = "Error de red escolar al validar credenciales.";
+                                }
+                            });
                     });
             }
         });
     }
 
-    // Envío del Formulario de Registro
-    if (formRegister) {
-        formRegister.addEventListener("submit", (e) => {
-            e.preventDefault();
+    // Botón de Pre-Autorización Escolar (CRUD Docente)
+    const crudSaveBtn = document.getElementById("btn-crud-save-student");
+    if (crudSaveBtn) {
+        crudSaveBtn.addEventListener("click", () => {
             playSound('click');
-            const username = document.getElementById("reg-username").value;
-            const email = document.getElementById("reg-email").value;
-            const password = document.getElementById("reg-password").value;
-            const msg = document.getElementById("auth-message");
-
-            if (isFirebaseEnabled) {
-                if (msg) {
-                    msg.classList.remove("hidden");
-                    msg.className = "auth-message warning";
-                    msg.innerText = "Creando tu cuenta escolar...";
-                }
-                firebase.auth().createUserWithEmailAndPassword(email, password)
-                    .then((userCredential) => {
-                        const user = userCredential.user;
-                        gameState.username = username;
-                        gameState.email = email;
-                        
-                        db.collection("users").doc(user.uid).set(gameState)
-                            .then(() => {
-                                if (msg) {
-                                    msg.className = "auth-message success";
-                                    msg.innerText = "¡Registro exitoso! Progreso enlazado a la nube.";
-                                }
-                                setTimeout(() => {
-                                    const authModal = document.getElementById("auth-modal");
-                                    if (authModal) authModal.classList.remove("hidden");
-                                    if (msg) msg.classList.add("hidden");
-                                }, 1500);
-                            });
-                    })
-                    .catch((error) => {
-                        if (msg) {
-                            msg.className = "auth-message error";
-                            msg.innerText = `Error: ${error.message}`;
-                        }
-                    });
+            const nameInput = document.getElementById("crud-student-name");
+            const emailInput = document.getElementById("crud-student-email");
+            const passInput = document.getElementById("crud-student-password");
+            
+            const nameVal = nameInput ? nameInput.value.trim() : "";
+            const emailVal = emailInput ? emailInput.value.trim().toLowerCase() : "";
+            const passVal = passInput ? passInput.value : "";
+            
+            if (!nameVal || !emailVal || !passVal) {
+                alert("⚠️ Por favor completa todos los campos del alumno.");
+                return;
             }
+            
+            if (passVal.length < 6) {
+                alert("⚠️ La contraseña debe tener al menos 6 caracteres por seguridad de Firebase.");
+                return;
+            }
+            
+            if (isFirebaseEnabled) {
+                db.collection("authorized_students").add({
+                    name: nameVal,
+                    email: emailVal,
+                    password: passVal,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                }).then(() => {
+                    playSound('correct');
+                    alert(`¡Estudiante "${nameVal}" pre-autorizado con éxito!`);
+                    
+                    // Limpiar campos
+                    if (nameInput) nameInput.value = "";
+                    if (emailInput) emailInput.value = "";
+                    if (passInput) passInput.value = "";
+                    
+                    fetchAuthorizedStudents();
+                }).catch((err) => {
+                    console.error("Error al guardar autorización:", err);
+                    alert("Error de base de datos al autorizar: " + err.message);
+                });
+            }
+        });
+    }
+
+    // Botón de Bypass para el Docente en la pantalla de bloqueo
+    const bypassTeacherBtn = document.getElementById("btn-login-bypass-teacher");
+    if (bypassTeacherBtn) {
+        bypassTeacherBtn.addEventListener("click", () => {
+            playSound('click');
+            showView("teacher");
+            
+            // Ocultar temporalmente el bloqueo de login para ver el formulario del PIN docente
+            const authModal = document.getElementById("auth-modal");
+            if (authModal) authModal.classList.add("hidden");
         });
     }
 
