@@ -8,7 +8,7 @@
 // Prof: Cuando crees tu proyecto en la consola de Firebase, reemplaza este
 // objeto con los datos que te proveerá la consola.
 const firebaseConfig = {
-  apiKey: "TU_API_KEY_AQUI",
+  apiKey: "AIzaSyDYkrfSeq4u8sCGHcVfFnAo3JrHlQb2yYM",
   authDomain: "prompterquest.firebaseapp.com",
   projectId: "prompterquest",
   storageBucket: "prompterquest.firebasestorage.app",
