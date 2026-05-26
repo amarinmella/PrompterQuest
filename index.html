@@ -737,6 +737,21 @@
                                 <button class="btn btn-primary" id="btn-crud-save-student" style="width: 100%; height: 42px;">Autorizar ⚡</button>
                             </div>
 
+                            <!-- Importación Masiva Colapsable -->
+                            <div style="margin-bottom: 24px; border: 1px dashed var(--color-border); padding: 16px; border-radius: 14px; background: rgba(0,0,0,0.12);">
+                                <h4 style="font-size: 0.88rem; font-weight: 800; color: var(--color-cyan); margin-bottom: 0; cursor: pointer; display: flex; align-items: center; justify-content: space-between;" id="btn-toggle-massive-import">
+                                    <span>📂 Importación Masiva desde Planilla (Excel / Sheets)</span>
+                                    <span style="font-size: 0.72rem; color: var(--color-text-muted); background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 6px;" id="toggle-massive-import-status">Hacer clic para expandir ⏷</span>
+                                </h4>
+                                <div id="massive-import-container" class="hidden" style="margin-top: 14px; border-top: 1px dashed var(--color-border); padding-top: 12px;">
+                                    <p style="font-size: 0.78rem; color: var(--color-text-muted); margin-bottom: 12px; line-height: 1.45;">
+                                        Copia las columnas de <strong>Nombre</strong>, <strong>Correo Escolar</strong> y opcionalmente <strong>Contraseña</strong> desde Microsoft Excel, Google Sheets o un archivo de texto, y pégalas abajo. El sistema detectará automáticamente si el separador es un tabulador, punto y coma (;) o coma (,).
+                                    </p>
+                                    <textarea id="crud-massive-text" placeholder="Ejemplos válidos a pegar:&#10;1) Excel/Tabulado: Juan Pérez	jperez@colegio.cl	clave123&#10;2) Punto y coma: Sofía Gómez;sgomez@colegio.cl;clave456&#10;3) Sin clave (se autogenera): Diego Silva;dsilva@colegio.cl" style="width: 100%; height: 130px; border-radius: 12px; padding: 12px; border: 1px solid var(--color-border); background: rgba(0,0,0,0.25); color: white; outline: none; font-family: monospace; font-size: 0.82rem; resize: vertical; margin-bottom: 12px; line-height: 1.4;"></textarea>
+                                    <button class="btn btn-primary btn-sm btn-glow w-100" id="btn-crud-massive-import" style="height: 40px;">Procesar e Importar Lista Masiva 🚀</button>
+                                </div>
+                            </div>
+
                             <!-- Tabla de Pre-Autorizados -->
                             <div style="overflow-x: auto; border: 1px solid var(--color-border); border-radius: 14px;">
                                 <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left;">

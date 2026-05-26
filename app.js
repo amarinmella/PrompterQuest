@@ -2368,6 +2368,139 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Toggle para mostrar/ocultar importación masiva
+    const toggleMassiveImportBtn = document.getElementById("btn-toggle-massive-import");
+    const massiveImportContainer = document.getElementById("massive-import-container");
+    const massiveImportStatus = document.getElementById("toggle-massive-import-status");
+    
+    if (toggleMassiveImportBtn && massiveImportContainer && massiveImportStatus) {
+        toggleMassiveImportBtn.addEventListener("click", () => {
+            playSound('click');
+            const isHidden = massiveImportContainer.classList.toggle("hidden");
+            if (isHidden) {
+                massiveImportStatus.innerText = "Hacer clic para expandir ⏷";
+            } else {
+                massiveImportStatus.innerText = "Hacer clic para colapsar ⏶";
+            }
+        });
+    }
+
+    // Procesar e importar lista masiva (Excel / Sheets)
+    const massiveImportBtn = document.getElementById("btn-crud-massive-import");
+    if (massiveImportBtn) {
+        massiveImportBtn.addEventListener("click", () => {
+            playSound('click');
+            const massiveTextInput = document.getElementById("crud-massive-text");
+            const textVal = massiveTextInput ? massiveTextInput.value.trim() : "";
+            
+            if (!textVal) {
+                alert("⚠️ Por favor ingresa o pega el texto copiado de Excel.");
+                return;
+            }
+
+            if (!isFirebaseEnabled) {
+                alert("⚠️ Firebase no está configurado. Conéctalo para usar esta característica.");
+                return;
+            }
+
+            const lines = textVal.split("\n");
+            let successCount = 0;
+            let skipCount = 0;
+            const promises = [];
+
+            lines.forEach((line) => {
+                const cleanedLine = line.trim();
+                if (!cleanedLine) return; // Fila vacía
+
+                // Detectar el separador de forma inteligente (Tabulador, Punto y Coma o Coma)
+                let parts = [];
+                if (cleanedLine.includes("\t")) {
+                    parts = cleanedLine.split("\t");
+                } else if (cleanedLine.includes(";")) {
+                    parts = cleanedLine.split(";");
+                } else if (cleanedLine.includes(",")) {
+                    parts = cleanedLine.split(",");
+                } else {
+                    parts = [cleanedLine];
+                }
+                
+                if (parts.length >= 3) {
+                    const name = parts[0].trim();
+                    const email = parts[1].trim().toLowerCase();
+                    const password = parts[2].trim();
+
+                    // Validaciones rápidas
+                    if (name && email.includes("@") && password.length >= 6) {
+                        const promise = db.collection("authorized_students").add({
+                            name: name,
+                            email: email,
+                            password: password,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        }).then(() => {
+                            successCount++;
+                        }).catch((err) => {
+                            console.error("Error al guardar fila masiva:", err);
+                            skipCount++;
+                        });
+                        promises.push(promise);
+                    } else {
+                        skipCount++;
+                    }
+                } else if (parts.length === 2) {
+                    // Si el profesor no copió clave, le asignamos una clave por defecto con prefijo y número aleatorio
+                    const name = parts[0].trim();
+                    const email = parts[1].trim().toLowerCase();
+                    const password = "clave" + Math.floor(100 + Math.random() * 900); // Clave como 'clave345' para que el docente la vea en la tabla
+
+                    if (name && email.includes("@")) {
+                        const promise = db.collection("authorized_students").add({
+                            name: name,
+                            email: email,
+                            password: password,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        }).then(() => {
+                            successCount++;
+                        }).catch((err) => {
+                            skipCount++;
+                        });
+                        promises.push(promise);
+                    } else {
+                        skipCount++;
+                    }
+                } else {
+                    skipCount++;
+                }
+            });
+
+            if (promises.length === 0) {
+                alert("⚠️ Formato de datos no reconocido. Verifica el formato en el ejemplo e inténtalo nuevamente.");
+                return;
+            }
+
+            massiveImportBtn.disabled = true;
+            massiveImportBtn.innerText = "Procesando importación asíncrona... ⏳";
+
+            Promise.all(promises).then(() => {
+                playSound('victory');
+                alert(`📊 Importación masiva completada.\n\n✔️ ${successCount} alumnos pre-autorizados con éxito.\n⚠️ ${skipCount} filas omitidas por formato inválido o claves menores a 6 caracteres.`);
+                
+                if (massiveTextInput) massiveTextInput.value = "";
+                if (massiveImportContainer) massiveImportContainer.classList.add("hidden");
+                if (massiveImportStatus) massiveImportStatus.innerText = "Hacer clic para expandir ⏷";
+                
+                massiveImportBtn.disabled = false;
+                massiveImportBtn.innerText = "Procesando e Importar Lista Masiva 🚀";
+                
+                fetchAuthorizedStudents();
+            }).catch((err) => {
+                console.error("Error en la importación masiva paralela:", err);
+                alert("Ocurrió un error al guardar los alumnos en la base de datos.");
+                massiveImportBtn.disabled = false;
+                massiveImportBtn.innerText = "Procesando e Importar Lista Masiva 🚀";
+            });
+        });
+    }
+
 // Lógica de Eliminación Masiva de Estudiantes
 async function deleteAllStudents() {
     playSound('click');
